@@ -8,11 +8,12 @@ Duplicate `on` event will trigger by the defined order
 """
 from .singleton import singleton
 from collections import defaultdict
-# from .exception import eventNotFoundException
+from .exceptions import eventNotFoundException
 
-
+@singleton
 class event_router(dict):
-    event_collection = defaultdict(list)
+    def __init__(self):
+        self.event_collection = defaultdict(list)
 
     def add_event(self, event, function):
         self.event_collection[event].append(function)
@@ -22,17 +23,24 @@ class event_router(dict):
 
 
 def on(event):
+    if not isinstance(event, str):
+        raise TypeError('event variable only expected string type')
+
     def on_wrapper(function):
         router = event_router()
         router.add_event(event, function)
-        def on_kernel(*args, **kwargs):
+        def _on(*args, **kwargs):
             # run on function called
             function(*args, **kwargs)
-        return on_kernel
+        return _on
+
     return on_wrapper
 
 
 def emit(event, to=None, to_room=None, broadcast=False):
     router = event_router()
-    for function in router.get_event(event):
+    functions = router.get_event(event)
+    if not functions:
+        raise eventNotFoundException(event)
+    for function in functions:
         function()
