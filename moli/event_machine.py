@@ -6,12 +6,14 @@ In Node, you use anonymous function to bind an event while you must use a named 
 
 Duplicate `on` event will trigger by the defined order
 """
+import functools
 from .singleton import singleton
 from collections import defaultdict
 from .exceptions import eventNotFoundException
 
+
 @singleton
-class event_router(dict):
+class EventRouter:
     def __init__(self):
         self.event_collection = defaultdict(list)
 
@@ -27,8 +29,9 @@ def on(event):
         raise TypeError('event variable only expected string type')
 
     def on_wrapper(function):
-        router = event_router()
+        router = EventRouter()
         router.add_event(event, function)
+
         def _on(*args, **kwargs):
             # run on function called
             function(*args, **kwargs)
@@ -38,7 +41,7 @@ def on(event):
 
 
 def emit(event, to=None, to_room=None, broadcast=False):
-    router = event_router()
+    router = EventRouter()
     functions = router.get_event(event)
     if not functions:
         raise eventNotFoundException(event)

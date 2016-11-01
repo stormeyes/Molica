@@ -1,10 +1,17 @@
-def parse_http_header():
-    pass
-    
+"""
+parse used to parse the protocol such as websocket handshake or websocket message or http request
+"""
 
-def parse_https_header():
-    pass
-    
 
-def parse_websocket_body():
-    pass
+class ParseFactory:
+    def __init__(self, **kwargs):
+        pass
+
+
+class ProtocolParse:
+    def __init__(self, **kwargs):
+        pass
+
+    @property
+    def header(self):
+        return {}
