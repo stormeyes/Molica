@@ -9,7 +9,7 @@ Duplicate `on` event will trigger by the defined order
 import functools
 from .singleton import singleton
 from collections import defaultdict
-from .exceptions import eventNotFoundException
+from .exceptions import EventNotFoundException
 
 
 @singleton
@@ -44,6 +44,6 @@ def emit(event, to=None, to_room=None, broadcast=False):
     router = EventRouter()
     functions = router.get_event(event)
     if not functions:
-        raise eventNotFoundException(event)
+        raise EventNotFoundException(event)
     for function in functions:
         function()
