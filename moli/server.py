@@ -30,7 +30,7 @@ class WebSocketProtocol(asyncio.protocols):
             response.send()
         else:
             http_parser = parse_factory(http=True, data=data)
-            response = HttpResponse()
+            response = HttpResponse(transport=self.transport)
             try:
                 websocket_key = http_parser.header['Sec-WebSocket-Key']
                 response.handshake(websocket_key)

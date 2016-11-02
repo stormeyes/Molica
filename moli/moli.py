@@ -1,12 +1,14 @@
 from .server import WebSocketProtocol
+from .event_machine import EventMachine
 try:
     import uvloop as asyncio
 except ImportError:
     import asyncio
 
 
-class Moli:
-    def blossom(self, host='127.0.0.1', port=8080):
+class Moli(EventMachine):
+    @staticmethod
+    def blossom(host='127.0.0.1', port=8080):
         loop = asyncio.get_event_loop()
         coro = loop.create_server(WebSocketProtocol, host, port)
         server = loop.run_until_complete(coro)
