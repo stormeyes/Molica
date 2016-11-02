@@ -36,7 +36,7 @@ class WebSocketProtocol(asyncio.protocols):
                 response.handshake(websocket_key)
             except NotWebSocketHandShakeException:
                 response.raise_error(400)
-            connection_pool.add()
+            connection_pool.add(transport=self.transport)
             self._hasHandShake = True
 
 
