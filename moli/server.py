@@ -17,16 +17,16 @@ connection_pool = ConnectionPool()
 class WebSocketProtocol(asyncio.protocols):
     def __init__(self, *args, **kwargs):
         super().__init(*args, **kwargs)
-        self._hasHandShake = False
+        self._has_handshake = False
         self.transport = None
 
     def connection_made(self, transport):
         self.transport = transport
 
     def data_received(self, data):
-        if self._hasHandShake:
+        if self._has_handshake:
             websocket_parser = parse_factory(websocket=True, data=data)
-            response = WebSocketResponse(websocket_parser.message)
+            response = WebSocketResponse(websocket_parser.message, transport=self.transport)
             response.send()
         else:
             http_parser = parse_factory(http=True, data=data)
@@ -37,20 +37,4 @@ class WebSocketProtocol(asyncio.protocols):
             except NotWebSocketHandShakeException:
                 response.raise_error(400)
             connection_pool.add(transport=self.transport)
-            self._hasHandShake = True
-
-
-loop = asyncio.get_event_loop()
-coro = loop.create_server(WebSocketProtocol, '0.0.0.0', 8080)
-server = loop.run_until_complete(coro)
-
-# Serve requests until Ctrl+C is pressed
-print('Serving on {}'.format(server.sockets[0].getsockname()))
-try:
-    loop.run_forever()
-except KeyboardInterrupt:
-    pass
-
-server.close()
-loop.run_until_complete(server.wait_closed())
-loop.close()
+            self._has_handshake = True

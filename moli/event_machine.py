@@ -24,26 +24,29 @@ class EventRouter:
         return self.event_collection[event]
 
 
-def on(event):
-    if not isinstance(event, str):
-        raise TypeError('event variable only expected string type')
+class EventMachine:
+    @staticmethod
+    def on(event):
+        if not isinstance(event, str):
+            raise TypeError('event variable only expected string type')
 
-    def on_wrapper(function):
+        def on_wrapper(function):
+            router = EventRouter()
+            router.add_event(event, function)
+
+            def _on(*args, **kwargs):
+                # run on function called
+                function(*args, **kwargs)
+
+            return _on
+
+        return on_wrapper
+
+    @staticmethod
+    def emit(event, to=None, to_room=None, broadcast=False):
         router = EventRouter()
-        router.add_event(event, function)
-
-        def _on(*args, **kwargs):
-            # run on function called
-            function(*args, **kwargs)
-        return _on
-
-    return on_wrapper
-
-
-def emit(event, to=None, to_room=None, broadcast=False):
-    router = EventRouter()
-    functions = router.get_event(event)
-    if not functions:
-        raise EventNotFoundException(event)
-    for function in functions:
-        function()
+        functions = router.get_event(event)
+        if not functions:
+            raise EventNotFoundException(event)
+        for function in functions:
+            function()

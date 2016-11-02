@@ -1,2 +1,2 @@
 # moli
-A Websocket Server/Client of Python by using async/await and uvloop. Deliver your message realtime!
+A Websocket Server/Client of Python by using async/await and uvloop which is based on Python3.5+. Deliver your message realtime!

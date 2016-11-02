@@ -1,9 +1,15 @@
-from moli import event_machine
+from moli import Moli, EventMachine
 
 
-@event_machine.on('handshake')
-def on_handshake_event():
+@EventMachine.on('handshake')
+def on_handshake_event(connection):
     print('11111111111')
 
 
-event_machine.emit('hndshake', 'hahahahahaha')
+@EventMachine.on('connection')
+def on_each_data_reciv(connection):
+    EventMachine.emit('user', {'message': 'Hey buddy!'})
+
+
+Moli().blossom(host='127.0.0.1', port=8080)
+
