@@ -28,9 +28,25 @@ class HttpParser:
 
 
 class WebsocketParser:
-    def __init__(self):
-        pass
+    def __init__(self, frame_message):
+        self.frame_message = frame_message
 
     @property
     def message(self):
-        return ''
+        byte_array = self.frame_message
+        datalength = byte_array[1] & 127
+        index_first_mask = 2
+        if datalength == 126:
+            index_first_mask = 4
+        elif datalength == 127:
+            index_first_mask = 10
+        masks = [m for m in byte_array[index_first_mask: index_first_mask + 4]]
+        index_first_data_byte = index_first_mask + 4
+        decoded_chars = []
+        i = index_first_data_byte
+        j = 0
+        while i < len(byte_array):
+            decoded_chars.append(chr(byte_array[i] ^ masks[j % 4]))
+            i += 1
+            j += 1
+        return ''.join(decoded_chars)

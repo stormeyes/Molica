@@ -7,8 +7,8 @@ In Node, you use anonymous function to bind an event while you must use a named 
 Duplicate `on` event will trigger by the defined order
 """
 import functools
-from .singleton import singleton
 from collections import defaultdict
+from .singleton import singleton
 from .exceptions import EventNotFoundException
 
 
@@ -43,7 +43,7 @@ class EventMachine:
         return on_wrapper
 
     @staticmethod
-    def emit(event, to=None, to_room=None, broadcast=False):
+    def emit(event, to=None, to_room=None, broadcast=False, net=True, local=False):
         router = EventRouter()
         functions = router.get_event(event)
         if not functions:

@@ -32,47 +32,27 @@ class HttpResponse:
         pass
 
     def _compute_websocket_key(self):
-        hash_key = hashlib.sha1(self.websocket_key.encode()).digest()
+        hash_key = hashlib.sha1((self.websocket_key + GUID).encode()).digest()
         base64_key = base64.b64encode(hash_key)
         return base64_key
 
 
 class WebSocketResponse:
     def __init__(self, message, transport=None):
-        self.message = None
-        self.frame_message = message
+        self.message = message
         self.transport = transport
-
-    def _decode_message(self):
-        byte_array = self.frame_message
-        datalength = byte_array[1] & 127
-        index_first_mask = 2
-        if datalength == 126:
-            index_first_mask = 4
-        elif datalength == 127:
-            index_first_mask = 10
-        masks = [m for m in byte_array[index_first_mask: index_first_mask + 4]]
-        index_first_data_byte = index_first_mask + 4
-        decoded_chars = []
-        i = index_first_data_byte
-        j = 0
-        while i < len(byte_array):
-            decoded_chars.append(chr(byte_array[i] ^ masks[j % 4]))
-            i += 1
-            j += 1
-        self.message = ''.join(decoded_chars)
 
     def _is_json(self, message):
         try:
-            self.frame_message = json.loads(message)
+            self.message = json.loads(message)
         except ValueError:
             return False
         return True
 
     def send(self):
         # trigger event
-        if self._is_json(self.frame_message):
-            if 'event' and 'data' in self.frame_message:
-                EventMachine.emit(self.frame_message['event'], self.frame_message['data'])
+        if self._is_json(self.message):
+            if 'event' and 'data' in self.message:
+                EventMachine.emit(self.message['event'], self.message['data'])
             else:
                 raise Exception
