@@ -43,10 +43,10 @@ class EventMachine:
         return on_wrapper
 
     @staticmethod
-    def emit(event, to=None, to_room=None, broadcast=False, net=True, local=False):
+    def emit(event, data, to=None, broadcast=False, net=True, local=False, transport=None):
         router = EventRouter()
         functions = router.get_event(event)
         if not functions:
             raise EventNotFoundException(event)
         for function in functions:
-            function()
+            function(dict(message=data, transport=transport))

@@ -25,7 +25,7 @@ class WebSocketProtocol(asyncio.Protocol):
         if self._has_handshake:
             websocket_parser = parse_factory(websocket=True, data=data)
             response = WebSocketResponse(websocket_parser.message, transport=self.transport)
-            logging.debug('Incoming message: {}'.format(websocket_parser.message))
+            logging.info('Incoming message: {}'.format(websocket_parser.message))
             response.send()
         else:
             http_parser = parse_factory(http=True, data=data)
@@ -35,5 +35,5 @@ class WebSocketProtocol(asyncio.Protocol):
                 response.handshake(websocket_key)
             except NotWebSocketHandShakeException:
                 response.raise_error(400)
-            # connection_pool.add(transport=self.transport)
+            connection_pool.add(transport=self.transport)
             self._has_handshake = True

@@ -1,3 +1,4 @@
+import time
 from .singleton import singleton
 
 
@@ -6,10 +7,24 @@ class ConnectionPool:
     def __init__(self):
         self.pool = dict()
 
-    def add(self, client_ip, client_port, transport):
-        # todo: check if the key exists/ add time
-        key = (client_ip, client_port)
+    def add(self, transport):
+        client_ip, client_port = transport.get_extra_info('peername')
+        key = (client_ip, client_port, int(time.time()))
         if key in self.pool:
             raise Exception
         else:
             self.pool.update({key: transport})
+
+
+class Connection:
+    def __init__(self, transport, name):
+        self.transport = transport
+        self._name = name
+
+    @property
+    def name(self):
+        pass
+
+    @name.setter
+    def name(self):
+        pass

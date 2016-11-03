@@ -79,7 +79,7 @@ class WebSocketResponse:
             # trigger event
             if self._is_json(self.message):
                 if 'event' and 'data' in self.message:
-                    EventMachine.emit(self.message['event'], self.message['data'])
+                    EventMachine.emit(self.message['event'], self.message['data'], transport=self.transport)
                 else:
                     raise Exception
             else:
