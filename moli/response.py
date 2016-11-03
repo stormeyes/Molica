@@ -49,12 +49,39 @@ class WebSocketResponse:
             return False
         return True
 
-    def send(self):
-        # trigger event
-        if self._is_json(self.message):
-            if 'event' and 'data' in self.message:
-                EventMachine.emit(self.message['event'], self.message['data'])
-            else:
-                raise Exception
+    def _encode_frame_message(self, message):
+        bytes_formatted = [129]
+
+        bytes_raw = message.encode()
+        bytes_length = len(bytes_raw)
+        if bytes_length <= 125:
+            bytes_formatted.append(bytes_length)
+        elif 126 <= bytes_length <= 65535:
+            bytes_formatted.append(126)
+            bytes_formatted.append((bytes_length >> 8) & 255)
+            bytes_formatted.append(bytes_length & 255)
         else:
-            pass
+            bytes_formatted.append(127)
+            bytes_formatted.append((bytes_length >> 56) & 255)
+            bytes_formatted.append((bytes_length >> 48) & 255)
+            bytes_formatted.append((bytes_length >> 40) & 255)
+            bytes_formatted.append((bytes_length >> 32) & 255)
+            bytes_formatted.append((bytes_length >> 24) & 255)
+            bytes_formatted.append((bytes_length >> 16) & 255)
+            bytes_formatted.append((bytes_length >> 8) & 255)
+            bytes_formatted.append(bytes_length & 255)
+
+        bytes_formatted = bytes(bytes_formatted)
+        bytes_formatted = bytes_formatted + bytes_raw
+        return bytes_formatted
+
+    def send(self):
+            # trigger event
+            if self._is_json(self.message):
+                if 'event' and 'data' in self.message:
+                    EventMachine.emit(self.message['event'], self.message['data'])
+                else:
+                    raise Exception
+            else:
+                message = self._encode_frame_message('hey you this fuck')
+                self.transport.write(message)

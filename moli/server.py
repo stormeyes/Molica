@@ -1,15 +1,12 @@
 """
 server create socket and make connection on each websocket client connect
 """
+import logging
 from .parser import parse_factory
 from .response import HttpResponse, WebSocketResponse
 from .exceptions import NotWebSocketHandShakeException
 from .connection_pool import ConnectionPool
 import asyncio
-# try:
-#     import uvloop as asyncio
-# except ImportError:
-#     import asyncio
 
 
 connection_pool = ConnectionPool()
@@ -28,6 +25,7 @@ class WebSocketProtocol(asyncio.Protocol):
         if self._has_handshake:
             websocket_parser = parse_factory(websocket=True, data=data)
             response = WebSocketResponse(websocket_parser.message, transport=self.transport)
+            logging.debug('Incoming message: {}'.format(websocket_parser.message))
             response.send()
         else:
             http_parser = parse_factory(http=True, data=data)
