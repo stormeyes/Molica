@@ -1,9 +1,10 @@
 from .server import WebSocketProtocol
 from .event_machine import EventMachine
-try:
-    import uvloop as asyncio
-except ImportError:
-    import asyncio
+import asyncio
+# try:
+#     import uvloop as asyncio
+# except ImportError:
+#     import asyncio
 
 
 class Moli(EventMachine):

@@ -5,18 +5,19 @@ from .parser import parse_factory
 from .response import HttpResponse, WebSocketResponse
 from .exceptions import NotWebSocketHandShakeException
 from .connection_pool import ConnectionPool
-try:
-    import uvloop as asyncio
-except ImportError:
-    import asyncio
+import asyncio
+# try:
+#     import uvloop as asyncio
+# except ImportError:
+#     import asyncio
 
 
 connection_pool = ConnectionPool()
 
 
-class WebSocketProtocol(asyncio.protocols):
-    def __init__(self, *args, **kwargs):
-        super().__init(*args, **kwargs)
+class WebSocketProtocol(asyncio.Protocol):
+    def __init__(self):
+        super().__init__()
         self._has_handshake = False
         self.transport = None
 
@@ -36,5 +37,5 @@ class WebSocketProtocol(asyncio.protocols):
                 response.handshake(websocket_key)
             except NotWebSocketHandShakeException:
                 response.raise_error(400)
-            connection_pool.add(transport=self.transport)
+            # connection_pool.add(transport=self.transport)
             self._has_handshake = True

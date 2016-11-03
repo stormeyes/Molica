@@ -56,3 +56,5 @@ class WebSocketResponse:
                 EventMachine.emit(self.message['event'], self.message['data'])
             else:
                 raise Exception
+        else:
+            pass

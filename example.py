@@ -11,5 +11,5 @@ def on_each_data_reciv(connection):
     EventMachine.emit('user', {'message': 'Hey buddy!'})
 
 
-Moli().blossom(host='127.0.0.1', port=8080)
+Moli.blossom(host='127.0.0.1', port=8013)
 

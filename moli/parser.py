@@ -8,14 +8,14 @@ from .exceptions import NotWebSocketHandShakeException
 
 def parse_factory(websocket=False, http=False, data=None):
     if websocket and data:
-        pass
+        return WebsocketParser(data)
     elif http and data:
         return HttpParser(data)
 
 
 class HttpParser:
     def __init__(self, data):
-        self.socket_data = data
+        self.socket_data = data.decode()
 
     @property
     def header(self):
