@@ -15,6 +15,9 @@ class ConnectionPool:
         else:
             self.pool.update({key: transport})
 
+    def get(self, name):
+        pass
+
 
 class Connection:
     def __init__(self, transport, name):

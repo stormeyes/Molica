@@ -9,6 +9,7 @@ Duplicate `on` event will trigger by the defined order
 import functools
 from collections import defaultdict
 from .singleton import singleton
+from .response import WebSocketResponse
 from .exceptions import EventNotFoundException
 
 
@@ -25,8 +26,8 @@ class EventRouter:
 
 
 class EventMachine:
-    @staticmethod
-    def on(event):
+    @classmethod
+    def on(cls, event):
         if not isinstance(event, str):
             raise TypeError('event variable only expected string type')
 
@@ -42,11 +43,22 @@ class EventMachine:
 
         return on_wrapper
 
-    @staticmethod
-    def emit(event, data, to=None, broadcast=False, net=True, local=False, transport=None):
+    @classmethod
+    def emit(cls, event, data, to=None, broadcast=False, net=True, local=False, transport=None):
+        if local:
+            cls._emit_local(event, data, transport)
+        if net:
+            cls._emit_net(event, data, to, broadcast, transport)
+
+    @classmethod
+    def _emit_local(cls, event, data, transport):
         router = EventRouter()
         functions = router.get_event(event)
         if not functions:
             raise EventNotFoundException(event)
         for function in functions:
             function(dict(message=data, transport=transport))
+
+    @classmethod
+    def _emit_net(cls, event, data, to, broadcast, transport):
+        WebSocketResponse({'event': event, 'data': data}, transport).send()
