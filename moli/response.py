@@ -3,10 +3,12 @@ import base64
 import hashlib
 from .event_machine import EventMachine
 from .parser import websocket_message_framing
+from .connection_pool import ConnectionPool
 
 
 GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
+connection_pool = ConnectionPool()
 
 class HttpResponse:
     def __init__(self, transport=None):
@@ -39,20 +41,17 @@ class HttpResponse:
 
 
 class WebSocketResponse:
-    def __init__(self, transport=None):
-        self.transport = transport
+    def __init__(self, connection_name):
+        self.connection_name = connection_name
 
     # handle request message, detect which to emit local exist event
     def handle(self, message):
         if self._is_json(message):
             # treat as event machine format request
             if 'event' and 'data' in self.message:
-                return EventMachine.emit(self.message['event'], self.message['data'],
-                                  net=False, local=True, connection=self.connection)
-            else:
-                return EventMachine.emit('data', message, net=False, local=True, connection=self.connection)
+                return EventMachine.emit(self.message['event'], self.message['data'], net=False, local=True, connection=connection_pool.get(self.connection_name))
         else:
-            return EventMachine.emit('data', message, net=False, local=True, connection=self.connection)
+            return EventMachine.emit('data', message, net=False, local=True, connection=connection_pool.get(self.connection_name))
 
     def _is_json(self, message):
         try:
@@ -66,4 +65,4 @@ class WebSocketResponse:
 
     def send(self, message):
         encode_message = self._encode_frame_message(message)
-        self.transport.write(encode_message)
+        connection_pool.get(self.connection_name).transport.write(encode_message)

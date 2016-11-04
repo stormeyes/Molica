@@ -17,7 +17,10 @@ class ConnectionPool:
             self.pool.update({key: connection})
 
     def get(self, name):
-        return self.pool.get(name)
+        if name not in self.pool:
+            raise Exception
+        else:
+            return self.pool.get(name)
 
     def update(self):
         pass
@@ -28,7 +31,7 @@ class Connection:
         self.transport = transport
         self.name = name
         self.data = None
-        self.response = WebSocketResponse(self.transport)
+        self.response = WebSocketResponse(self.name)
 
     @property
     def name(self):

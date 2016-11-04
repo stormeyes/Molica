@@ -51,13 +51,14 @@ class EventMachine:
             '''
             if not connection:
                 connection = Connection(None, None)
-                connection.data = data
+            connection.data = data
             cls._emit_local(event, connection)
         if net:
-            if not connection:
+            if any([to, connection]):
+                connection.data = data
+                cls._emit_net(event, to, broadcast, connection)
+            else:
                 raise Exception
-            connection.data = data
-            cls._emit_net(event, to, broadcast, connection)
 
     @classmethod
     def _emit_local(cls, event, connection):
