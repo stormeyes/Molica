@@ -1,14 +1,18 @@
 """
 server create socket and make connection on each websocket client connect
 """
+import asyncio
 import logging
-from .parser import parse_factory
+import uuid
+import string
+import random
+from .request import request_factory
 from .response import HttpResponse, WebSocketResponse
 from .exceptions import NotWebSocketHandShakeException
-from .connection_pool import ConnectionPool
-import asyncio
+from .connection_pool import Connection, ConnectionPool
 
 
+UUID_NAMESPACE = 'moli'
 connection_pool = ConnectionPool()
 
 
@@ -17,23 +21,25 @@ class WebSocketProtocol(asyncio.Protocol):
         super().__init__()
         self._has_handshake = False
         self.transport = None
+        self.connection = None
 
     def connection_made(self, transport):
         self.transport = transport
 
     def data_received(self, data):
         if self._has_handshake:
-            websocket_parser = parse_factory(websocket=True, data=data)
-            response = WebSocketResponse(websocket_parser.message, transport=self.transport)
-            logging.info('Incoming message: {}'.format(websocket_parser.message))
-            response.send()
+            r = request_factory(websocket=True, data=data)
+            logging.info('Incoming message: {}'.format(r.message))
+            self.connection.handle(r)
         else:
-            http_parser = parse_factory(http=True, data=data)
-            response = HttpResponse(transport=self.transport)
+            r = request_factory(http_handshake=True, data=data)
+            response = HttpResponse()
             try:
-                websocket_key = http_parser.header['Sec-WebSocket-Key']
-                response.handshake(websocket_key)
+                response.handshake(r)
             except NotWebSocketHandShakeException:
                 response.raise_error(400)
-            connection_pool.add(transport=self.transport)
+            uuid_name = ''.join([(string.ascii_letters+string.digits)[x] for x in random.sample(range(0, 62), 8)])
+            connection = Connection(name=uuid.uuid3(UUID_NAMESPACE, uuid_name), transport=self.transport)
+            connection_pool.add(connection)
             self._has_handshake = True
+            self.connection = connection

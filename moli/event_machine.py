@@ -11,6 +11,7 @@ from collections import defaultdict
 from .singleton import singleton
 from .response import WebSocketResponse
 from .exceptions import EventNotFoundException
+from .connection_pool import Connection
 
 
 @singleton
@@ -44,21 +45,30 @@ class EventMachine:
         return on_wrapper
 
     @classmethod
-    def emit(cls, event, data, to=None, broadcast=False, net=True, local=False, transport=None):
+    def emit(cls, event, data, to=None, broadcast=False, net=True, local=False, connection=None):
         if local:
-            cls._emit_local(event, data, transport)
+            '''
+            In the local env, the connection is not exist in fact, we wrapper data into connection type
+            '''
+            if not connection:
+                connection = Connection(None, None, data=data)
+            cls._emit_local(event, connection)
         if net:
-            cls._emit_net(event, data, to, broadcast, transport)
+            if not connection:
+                raise Exception
+            connection.data = data
+            cls._emit_net(event, to, broadcast, connection)
 
     @classmethod
-    def _emit_local(cls, event, data, transport):
+    def _emit_local(cls, event, connection):
         router = EventRouter()
         functions = router.get_event(event)
         if not functions:
             raise EventNotFoundException(event)
         for function in functions:
-            function(dict(message=data, transport=transport))
+            function(connection)
 
     @classmethod
-    def _emit_net(cls, event, data, to, broadcast, transport):
-        WebSocketResponse({'event': event, 'data': data}, transport).send()
+    def _emit_net(cls, event, to, broadcast, connection):
+        del connection.data
+        WebSocketResponse({'event': event, 'data': connection.data}, connection).send()

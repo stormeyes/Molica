@@ -1,5 +1,5 @@
-import time
 from .singleton import singleton
+from .response import WebSocketResponse
 
 
 @singleton
@@ -7,22 +7,28 @@ class ConnectionPool:
     def __init__(self):
         self.pool = dict()
 
-    def add(self, transport):
-        client_ip, client_port = transport.get_extra_info('peername')
-        key = (client_ip, client_port, int(time.time()))
+    def add(self, connection):
+        if not isinstance(connection, Connection):
+            raise Exception
+        key = connection.name
         if key in self.pool:
             raise Exception
         else:
-            self.pool.update({key: transport})
+            self.pool.update({key: connection})
 
     def get(self, name):
+        return self.pool.get(name)
+
+    def update(self):
         pass
 
 
 class Connection:
-    def __init__(self, transport, name):
+    def __init__(self, name, transport):
         self.transport = transport
-        self._name = name
+        self.name = name
+        self.data = None
+        self.response = WebSocketResponse(self.transport)
 
     @property
     def name(self):
@@ -31,3 +37,7 @@ class Connection:
     @name.setter
     def name(self):
         pass
+
+    def send(self, message):
+        self.response.send(message)
+
