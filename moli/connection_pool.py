@@ -1,5 +1,4 @@
 from .singleton import singleton
-from .response import WebSocketResponse
 
 
 @singleton
@@ -27,11 +26,11 @@ class ConnectionPool:
 
 
 class Connection:
-    def __init__(self, name, transport):
+    def __init__(self, name, transport, response):
         self.transport = transport
         self.name = name
         self.data = None
-        self.response = WebSocketResponse(self.name)
+        self.response = response
 
     @property
     def name(self):

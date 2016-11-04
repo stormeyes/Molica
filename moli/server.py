@@ -40,7 +40,11 @@ class WebSocketProtocol(asyncio.Protocol):
             except NotWebSocketHandShakeException:
                 response.raise_error(400)
             uuid_name = ''.join([(string.ascii_letters+string.digits)[x] for x in random.sample(range(0, 62), 8)])
-            connection = Connection(name=uuid.uuid3(UUID_NAMESPACE, uuid_name), transport=self.transport)
+            connection = Connection(
+                name=uuid.uuid3(UUID_NAMESPACE, uuid_name),
+                transport=self.transport,
+                response=WebSocketResponse(self.transport)
+            )
             connection_pool.add(connection)
             self._has_handshake = True
             self.connection = connection

@@ -55,7 +55,7 @@ class EventMachine:
             cls._emit_local(event, connection)
         if net:
             if any([to, connection]):
-                connection.data = data
+                connection = {'data': data}
                 cls._emit_net(event, to, broadcast, connection)
             else:
                 raise Exception

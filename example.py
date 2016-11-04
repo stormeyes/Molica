@@ -21,7 +21,7 @@ def on_each_data_reciv(connection):
     EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 
 
-EventMachine.emit('notify', ['list'], to='john', net=True)
+# EventMachine.emit('notify', ['list'], to='john', net=True)
 
 
 Moli.blossom(host='127.0.0.1', port=8013)
