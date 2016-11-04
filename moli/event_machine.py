@@ -9,7 +9,6 @@ Duplicate `on` event will trigger by the defined order
 import functools
 from collections import defaultdict
 from .singleton import singleton
-from .response import WebSocketResponse
 from .exceptions import EventNotFoundException
 from .connection_pool import Connection
 
@@ -51,7 +50,8 @@ class EventMachine:
             In the local env, the connection is not exist in fact, we wrapper data into connection type
             '''
             if not connection:
-                connection = Connection(None, None, data=data)
+                connection = Connection(None, None)
+                connection.data = data
             cls._emit_local(event, connection)
         if net:
             if not connection:
@@ -70,5 +70,5 @@ class EventMachine:
 
     @classmethod
     def _emit_net(cls, event, to, broadcast, connection):
+        connection.response.send({'event': event, 'data': connection.data})
         del connection.data
-        WebSocketResponse({'event': event, 'data': connection.data}, connection).send()

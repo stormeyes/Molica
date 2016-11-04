@@ -41,3 +41,6 @@ class Connection:
     def send(self, message):
         self.response.send(message)
 
+    def handle(self, request):
+        self.response.handle(request.message)
+
