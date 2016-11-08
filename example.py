@@ -1,6 +1,11 @@
 from moli import Moli, EventMachine
 
 
+@EventMachine.on('sayhi')
+def sayhi(connection):
+    EventMachine.emit('goodTime', 'Seems great time', connection=connection)
+
+
 # broadcast your message to all connection!
 @EventMachine.on('broadcast_message')
 def on_handshake_event(connection):

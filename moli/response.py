@@ -10,6 +10,7 @@ GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
 connection_pool = ConnectionPool()
 
+
 class HttpResponse:
     def __init__(self, transport=None):
         self.transport = transport
@@ -41,17 +42,18 @@ class HttpResponse:
 
 
 class WebSocketResponse:
-    def __init__(self, connection_name):
-        self.connection_name = connection_name
+    def __init__(self, connection):
+        self.connection = connection
 
     # handle request message, detect which to emit local exist event
     def handle(self, message):
         if self._is_json(message):
             # treat as event machine format request
             if 'event' and 'data' in self.message:
-                return EventMachine.emit(self.message['event'], self.message['data'], net=False, local=True, connection=connection_pool.get(self.connection_name))
+                return EventMachine.emit(self.message['event'], self.message['data'],
+                                         net=False, local=True, connection=self.connection)
         else:
-            return EventMachine.emit('data', message, net=False, local=True, connection=connection_pool.get(self.connection_name))
+            return EventMachine.emit('data', message, net=False, local=True, connection=self.connection)
 
     def _is_json(self, message):
         try:
@@ -60,9 +62,6 @@ class WebSocketResponse:
             return False
         return True
 
-    def _encode_frame_message(self, message):
-        return websocket_message_framing(message)
-
     def send(self, message):
-        encode_message = self._encode_frame_message(message)
-        connection_pool.get(self.connection_name).transport.write(encode_message)
+        print(message)
+        self.connection.send(message, encode=True)

@@ -1,4 +1,6 @@
+import json
 from .singleton import singleton
+from .parser import websocket_message_framing
 
 
 @singleton
@@ -26,23 +28,27 @@ class ConnectionPool:
 
 
 class Connection:
-    def __init__(self, name, transport, response):
-        self.transport = transport
+    def __init__(self, name, transport):
         self.name = name
+        self.transport = transport
         self.data = None
-        self.response = response
 
-    @property
-    def name(self):
-        pass
+    # @property
+    # def name(self):
+    #     pass
+    #
+    # @name.setter
+    # def name(self):
+    #     pass
 
-    @name.setter
-    def name(self):
-        pass
-
-    def send(self, message):
-        self.response.send(message)
-
-    def handle(self, request):
-        self.response.handle(request.message)
+    def send(self, message, encode=True):
+        print(message)
+        if isinstance(message, dict):
+            message = json.dumps(message)
+        elif isinstance(message, str):
+            pass
+        else:
+            raise Exception
+        message = websocket_message_framing(message) if encode else message
+        self.transport.write(message)
 

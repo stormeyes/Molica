@@ -55,7 +55,7 @@ class EventMachine:
             cls._emit_local(event, connection)
         if net:
             if any([to, connection]):
-                connection = {'data': data}
+                # todo: if to: find the named connection and send by for loop
                 cls._emit_net(event, to, broadcast, connection)
             else:
                 raise Exception
@@ -71,5 +71,5 @@ class EventMachine:
 
     @classmethod
     def _emit_net(cls, event, to, broadcast, connection):
-        connection.response.send({'event': event, 'data': connection.data})
+        connection.send({'event': event, 'data': connection.data})
         del connection.data

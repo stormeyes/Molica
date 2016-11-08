@@ -1,7 +1,7 @@
-from .server import WebSocketProtocol
-from .event_machine import EventMachine
 import asyncio
-import logging
+from .server import WebSocketProtocol
+from .log import log
+from .event_machine import EventMachine
 
 
 class Moli(EventMachine):
@@ -11,7 +11,7 @@ class Moli(EventMachine):
         coro = loop.create_server(WebSocketProtocol, host, port)
         server = loop.run_until_complete(coro)
 
-        logging.debug('Serving on {}'.format(server.sockets[0].getsockname()))
+        log.info('Serving on {}'.format(server.sockets[0].getsockname()))
         try:
             loop.run_forever()
         except KeyboardInterrupt:
