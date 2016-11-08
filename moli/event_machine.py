@@ -56,7 +56,7 @@ class EventMachine:
         if net:
             if any([to, connection]):
                 # todo: if to: find the named connection and send by for loop
-                cls._emit_net(event, to, broadcast, connection)
+                cls._emit_net(event, data, to, broadcast, connection)
             else:
                 raise Exception
 
@@ -64,12 +64,13 @@ class EventMachine:
     def _emit_local(cls, event, connection):
         router = EventRouter()
         functions = router.get_event(event)
-        if not functions:
+        if not functions and event != 'data':
+            # todo: the single thread will crash for having client send not exist event
             raise EventNotFoundException(event)
         for function in functions:
             function(connection)
 
     @classmethod
-    def _emit_net(cls, event, to, broadcast, connection):
-        connection.send({'event': event, 'data': connection.data})
+    def _emit_net(cls, event, data, to, broadcast, connection):
+        connection.send({'event': event, 'data': data})
         del connection.data

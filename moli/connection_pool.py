@@ -42,7 +42,6 @@ class Connection:
     #     pass
 
     def send(self, message, encode=True):
-        print(message)
         if isinstance(message, dict):
             message = json.dumps(message)
         elif isinstance(message, str):
