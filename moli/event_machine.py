@@ -77,5 +77,7 @@ class EventMachine:
 
     @classmethod
     def _emit_net(cls, event, data, to, broadcast, connection):
-        connection.send({'event': event, 'data': data})
+        # if event is None, regards the emit as Non event machine style and send raw data directly
+        message = data if event is None else {'event': event, 'data': data}
+        connection.send(message)
         del connection.data

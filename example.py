@@ -10,7 +10,7 @@ def sayhi(connection):
 
 @EventMachine.on('sayhi_again')
 def sayhi_again(connection):
-    EventMachine.emit('goodTime', {'message': 'Hey you this silly boy'}, connection=connection)
+    EventMachine.emit('goodTime', {'message': 'what you this silly boy'}, connection=connection)
 
 
 @EventMachine.on('sayhi_again')
