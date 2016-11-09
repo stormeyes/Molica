@@ -3,6 +3,17 @@ from moli import Moli, EventMachine, connection_pool
 connection_pool_instance = connection_pool.ConnectionPool()
 
 
+@EventMachine.on('rename')
+def rename(connection):
+    connection.name = connection.data
+    EventMachine.emit(None, "rename ok!", connection=connection)
+
+
+@EventMachine.on('emit_to_somebody')
+def emit_to_somebody(connection):
+    EventMachine.emit(None, 'you have some specify message', to=connection.data, connection=connection)
+
+
 @EventMachine.on('sayhi')
 def sayhi(connection):
     EventMachine.emit('goodTime', 'Seems great time', connection=connection)
@@ -40,7 +51,7 @@ def point2point_talk(connection):
 # The `connect` event will trigger on each time when client connect to server, named your connection
 @EventMachine.on('connect')
 def on_each_data_reciv(connection):
-    connection.name = 'john'
+    # connection.name = 'john'
     EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 
 

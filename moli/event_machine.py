@@ -88,7 +88,7 @@ class EventMachine:
         if to is not None:
             client_list = to if isinstance(to, list) else [to]
         elif broadcast is not None:
-            client_list = connection_pool.keys()
+            client_list = connection_pool.pool.keys()
         else:
             client_list = [connection.name]
         # if event is None, regards the emit as Non event machine style and send raw data directly
