@@ -26,6 +26,7 @@ def trigger_by_other_side():
 # broadcast your message to all connection!
 @EventMachine.on('broadcast_message')
 def on_handshake_event(connection):
+    print(connection.data)
     EventMachine.emit('chat_message', connection.data, broadcast=True, connection=connection)
 
 
@@ -40,13 +41,12 @@ def point2point_talk(connection):
 @EventMachine.on('connect')
 def on_each_data_reciv(connection):
     connection.name = 'john'
-
     EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 
 
 @EventMachine.on('data')
 def on_each_data_reciv(connection):
-    connection.name = 'john'
+    # connection.name = 'john'
     print(connection_pool_instance.pool)
     print('data event trigger', connection.data)
     # EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)

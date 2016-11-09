@@ -59,7 +59,14 @@ class EventMachine:
             connection.data = data
             cls._emit_local(event, connection)
         if net:
-            if any([to, connection]):
+            """
+            to param means the message send to specify person / named connection
+            broadcast param means send to all connection
+            connection param means only current client
+
+            !! ONLY ONE OF THEM CAN BE NOT NONE
+            """
+            if any([to, broadcast, connection]):
                 # todo: if to: find the named connection and send by for loop
                 cls._emit_net(event, data, to, broadcast, connection)
             else:
@@ -71,12 +78,18 @@ class EventMachine:
         functions = router.get_event(event)
         if not functions and event != 'data':
             return log.warning(
-                'event `{}` not found! Please check if you had used `on` method to handler it.'.format(event))
+                'event `{}` not found! Please check if you have `on` method to handler it.'.format(event))
         for function in functions:
             function(connection)
 
     @classmethod
     def _emit_net(cls, event, data, to, broadcast, connection):
+        if to is not None:
+            client_list = to
+        elif broadcast is not None:
+            client_list = []
+        else:
+            client_list = ['']
         # if event is None, regards the emit as Non event machine style and send raw data directly
         message = data if event is None else {'event': event, 'data': data}
         connection.send(message)
