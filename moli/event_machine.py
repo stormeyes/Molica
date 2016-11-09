@@ -17,6 +17,11 @@ from .connection_pool import Connection
 class EventRouter:
     def __init__(self):
         self.event_collection = defaultdict(list)
+        self._init_default_event()
+
+    def _init_default_event(self):
+        self.event_collection['connect'].append(lambda: None)
+        self.event_collection['data'].append(lambda: None)
 
     def add_event(self, event, function):
         self.event_collection[event].append(function)

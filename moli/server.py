@@ -26,14 +26,14 @@ class WebSocketProtocol(asyncio.Protocol):
 
     def data_received(self, data):
         if self._has_handshake:
-            r = request_factory(websocket=True, data=data)
+            r = request_factory(websocket=True, data=data, transport=self.transport)
             log.info('Incoming message: {}'.format(r.message))
             response = WebSocketResponse(self.connection)
             response.handle(r.message)
         else:
-            r = request_factory(http_handshake=True, data=data)
+            r = request_factory(http_handshake=True, data=data, transport=self.transport)
             # todo: bundle client ip/port info into request
-            log.info('Server starting handshake with client at {}:{}')
+            log.info('Server starting handshake with client at {}, port {}'.format(r.client['ip'], r.client['port']))
             response = HttpResponse(self.transport)
             try:
                 response.handshake(r)
@@ -45,5 +45,6 @@ class WebSocketProtocol(asyncio.Protocol):
                 transport=self.transport
             )
             connection_pool.add(connection)
+            log.info('Connection with {}:{} has established'.format(r.client['ip'], r.client['port']))
             self._has_handshake = True
             self.connection = connection

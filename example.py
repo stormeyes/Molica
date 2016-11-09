@@ -6,6 +6,21 @@ def sayhi(connection):
     EventMachine.emit('goodTime', 'Seems great time', connection=connection)
 
 
+@EventMachine.on('sayhi_again')
+def sayhi_again(connection):
+    EventMachine.emit('goodTime', {'message': 'Hey you this silly boy'}, connection=connection)
+
+
+@EventMachine.on('sayhi_again')
+def sayhi_again(connection):
+    EventMachine.emit(None, {'message': 'Hey you this silly boy'}, connection=connection)
+
+
+def trigger_by_other_side():
+    EventMachine.emit('goodTime', {'message'}, to=['john', 'alice'])
+    EventMachine.emit('sayhi', {'data'})
+
+
 # broadcast your message to all connection!
 @EventMachine.on('broadcast_message')
 def on_handshake_event(connection):
@@ -26,7 +41,10 @@ def on_each_data_reciv(connection):
     EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 
 
-# EventMachine.emit('notify', ['list'], to='john', net=True)
+@EventMachine.on('data')
+def on_each_data_reciv(connection):
+    connection.name = 'john'
+    EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 
 
 Moli.blossom(host='127.0.0.1', port=8013)
