@@ -10,7 +10,9 @@ import functools
 from collections import defaultdict
 from .log import log
 from .singleton import singleton
-from .connection_pool import Connection
+from .connection_pool import Connection, ConnectionPool
+
+connection_pool = ConnectionPool()
 
 
 @singleton
@@ -60,14 +62,13 @@ class EventMachine:
             cls._emit_local(event, connection)
         if net:
             """
-            to param means the message send to specify person / named connection
-            broadcast param means send to all connection
-            connection param means only current client
+            :param to: means the message send to specify person / named connection
+            :param broadcast: means send to all connection
+            :param connection: means only current client
 
             !! ONLY ONE OF THEM CAN BE NOT NONE
             """
             if any([to, broadcast, connection]):
-                # todo: if to: find the named connection and send by for loop
                 cls._emit_net(event, data, to, broadcast, connection)
             else:
                 raise Exception
@@ -85,12 +86,13 @@ class EventMachine:
     @classmethod
     def _emit_net(cls, event, data, to, broadcast, connection):
         if to is not None:
-            client_list = to
+            client_list = to if isinstance(to, list) else [to]
         elif broadcast is not None:
-            client_list = []
+            client_list = connection_pool.keys()
         else:
-            client_list = ['']
+            client_list = [connection.name]
         # if event is None, regards the emit as Non event machine style and send raw data directly
         message = data if event is None else {'event': event, 'data': data}
-        connection.send(message)
-        del connection.data
+        for connection_name in client_list:
+            connection_pool.get(connection_name).send(message)
+            del connection_pool.get(connection_name).data
