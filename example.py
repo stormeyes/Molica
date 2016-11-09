@@ -1,4 +1,6 @@
-from moli import Moli, EventMachine
+from moli import Moli, EventMachine, connection_pool
+
+connection_pool_instance = connection_pool.ConnectionPool()
 
 
 @EventMachine.on('sayhi')
@@ -38,12 +40,14 @@ def point2point_talk(connection):
 @EventMachine.on('connect')
 def on_each_data_reciv(connection):
     connection.name = 'john'
+
     EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 
 
 @EventMachine.on('data')
 def on_each_data_reciv(connection):
     connection.name = 'john'
+    print(connection_pool_instance.pool)
     print('data event trigger', connection.data)
     # EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 

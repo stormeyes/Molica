@@ -34,7 +34,6 @@ class WebSocketProtocol(asyncio.Protocol):
             response.handle(r.message)
         else:
             r = request_factory(http_handshake=True, data=data, transport=self.transport)
-            # todo: bundle client ip/port info into request
             log.info('Server starting handshake with client at {}, port {}'.format(r.client['ip'], r.client['port']))
             response = HttpResponse(self.transport)
             try:
