@@ -95,4 +95,4 @@ class EventMachine:
         message = data if event is None else {'event': event, 'data': data}
         for connection_name in client_list:
             connection_pool.get(connection_name).send(message)
-            del connection_pool.get(connection_name).data
+            # del connection_pool.get(connection_name).data
