@@ -47,13 +47,12 @@ class WebSocketResponse:
 
     # handle request message, detect which to emit local exist event
     def handle(self, message):
-        if self._is_json(message):
-            # treat as event machine format request
-            if 'event' and 'data' in self.message:
-                return EventMachine.emit(self.message['event'], self.message['data'],
-                                         net=False, local=True, connection=self.connection)
-        else:
-            return EventMachine.emit('data', message, net=False, local=True, connection=self.connection)
+        # trigger the default data event on each time client send the data
+        EventMachine.emit('data', message, net=False, local=True, connection=self.connection)
+        # treat as event machine format request
+        if self._is_json(message) and ('event' and 'data' in self.message):
+            return EventMachine.emit(self.message['event'], self.message['data'],
+                                     net=False, local=True, connection=self.connection)
 
     def _is_json(self, message):
         try:
@@ -63,5 +62,4 @@ class WebSocketResponse:
         return True
 
     def send(self, message):
-        print(message)
         self.connection.send(message, encode=True)

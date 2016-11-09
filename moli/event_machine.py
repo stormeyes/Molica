@@ -8,8 +8,8 @@ Duplicate `on` event will trigger by the defined order
 """
 import functools
 from collections import defaultdict
+from .log import log
 from .singleton import singleton
-from .exceptions import EventNotFoundException
 from .connection_pool import Connection
 
 
@@ -20,8 +20,8 @@ class EventRouter:
         self._init_default_event()
 
     def _init_default_event(self):
-        self.event_collection['connect'].append(lambda: None)
-        self.event_collection['data'].append(lambda: None)
+        self.event_collection['connect'].append(lambda *args: None)
+        self.event_collection['data'].append(lambda *args: None)
 
     def add_event(self, event, function):
         self.event_collection[event].append(function)
@@ -70,8 +70,8 @@ class EventMachine:
         router = EventRouter()
         functions = router.get_event(event)
         if not functions and event != 'data':
-            # todo: the single thread will crash for having client send not exist event
-            raise EventNotFoundException(event)
+            return log.warning(
+                'event `{}` not found! Please check if you had used `on` method to handler it.'.format(event))
         for function in functions:
             function(connection)
 

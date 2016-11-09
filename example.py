@@ -44,7 +44,8 @@ def on_each_data_reciv(connection):
 @EventMachine.on('data')
 def on_each_data_reciv(connection):
     connection.name = 'john'
-    EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
+    print('data event trigger', connection.data)
+    # EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 
 
 Moli.blossom(host='127.0.0.1', port=8013)
