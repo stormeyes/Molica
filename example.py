@@ -63,5 +63,10 @@ def on_each_data_reciv(connection):
     # EventMachine.emit('user', {'message': 'Hey buddy!'}, connection=connection)
 
 
+@EventMachine.on('disconnect')
+def on_disconnect(connection):
+    EventMachine.emit(None, 'Sad! someone leaves us just now', broadcast=True)
+
+
 Moli.blossom(host='127.0.0.1', port=8013)
 

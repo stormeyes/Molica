@@ -1,4 +1,5 @@
 import json
+from .log import log
 from .singleton import singleton
 from .parser import websocket_message_framing
 
@@ -25,7 +26,7 @@ class ConnectionPool:
 
     def update(self, connection, new_name):
         if new_name in self.pool:
-            raise Exception
+            log.warning("duplicated name!")
         self.pool[new_name] = self.pool.pop(connection.name)
 
 
