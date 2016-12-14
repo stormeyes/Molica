@@ -2,7 +2,6 @@ import json
 import base64
 import hashlib
 from .event_machine import EventMachine
-from .parser import websocket_message_framing
 from .connection_pool import ConnectionPool
 
 

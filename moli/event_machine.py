@@ -85,9 +85,9 @@ class EventMachine:
 
     @classmethod
     def _emit_net(cls, event, data, to, broadcast, connection):
-        if to is not None:
+        if to:
             client_list = to if isinstance(to, list) else [to]
-        elif broadcast is not None:
+        elif broadcast:
             client_list = connection_pool.pool.keys()
         else:
             client_list = [connection.name]

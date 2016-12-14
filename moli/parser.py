@@ -6,13 +6,13 @@ from io import StringIO
 from .exceptions import NotWebSocketHandShakeException
 
 
-def parser_http_header(data):
+def parser_http_header(data, websocket=True):
     socket_data = data.decode()
 
     _, headers = socket_data.split('\r\n', 1)
     message = email.message_from_file(StringIO(headers))
     headers = dict(message.items())
-    if 'Sec-WebSocket-Key' not in headers:
+    if 'Sec-WebSocket-Key' not in headers and websocket:
         raise NotWebSocketHandShakeException()
     return headers
 
