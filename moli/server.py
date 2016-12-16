@@ -27,6 +27,7 @@ class WebSocketProtocol(asyncio.Protocol):
         self.transport = transport
 
     def data_received(self, data):
+        print(data)
         if self._has_handshake:
             r = request_factory(websocket=True, data=data, transport=self.transport)
             log.info('Incoming message: {}'.format(r.message))

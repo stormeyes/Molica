@@ -45,7 +45,7 @@ def websocket_message_deframing(frame_message):
 
 def websocket_message_framing(message, mask=False):
     mask = int(mask)
-    encoded_message = [127]
+    encoded_message = [129]
     if isinstance(message, str):
         message = bytes(message.encode())
     elif isinstance(message, bytes):
@@ -55,7 +55,6 @@ def websocket_message_framing(message, mask=False):
     payload_length = len(message)
 
     # todo: default message type is `text`
-    encoded_message[0] += opcode.text
     encoded_message.append((mask << 7) + payload_length)
     if mask:
         mask_key = ''.join(choice(ascii_uppercase) for i in range(4))
@@ -63,8 +62,6 @@ def websocket_message_framing(message, mask=False):
         for index, byte in enumerate(message.decode()):
             encoded_message.append(ord(byte) ^ ord(mask_key[index % 4]))
     else:
-        print(1111)
         for byte in message.decode():
             encoded_message.append(ord(byte))
-    print(encoded_message)
     return bytes(encoded_message)

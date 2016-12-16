@@ -56,15 +56,10 @@ class Client:
             if chunk == b'\r\n':
                 break
         header_dict = parser_http_header(server_header, websocket=False)
-        print(header_dict)
 
     def emit(self, event, data):
-        message = 'ujhggffffdv'
-        framing_message = websocket_message_framing(message)
-        print(type(framing_message))
-        defram = websocket_message_deframing(framing_message)
-        print(message, framing_message, len(defram), '11')
-        for i in defram: print(i)
+        message = json.dumps({'event': 'user', 'data': 'sync'})
+        framing_message = websocket_message_framing(message, 1)
         self.connection['writer'].write(framing_message)
 
     def on(self, event, data):
