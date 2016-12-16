@@ -1,9 +1,15 @@
 """
 parse used to parse the protocol such as websocket handshake or websocket message or http request
 """
+from random import choice
+from string import ascii_uppercase
 import email
 from io import StringIO
+from collections import namedtuple
 from .exceptions import NotWebSocketHandShakeException
+
+
+opcode = namedtuple('Opcode', ['text', 'binary', 'ping', 'pong'])(1, 2, 9, 10)
 
 
 def parser_http_header(data, websocket=True):
@@ -25,7 +31,7 @@ def websocket_message_deframing(frame_message):
         index_first_mask = 4
     elif datalength == 127:
         index_first_mask = 10
-    masks = [m for m in byte_array[index_first_mask: index_first_mask + 4]]
+    masks = [ m for m in byte_array[index_first_mask: index_first_mask + 4] ]
     index_first_data_byte = index_first_mask + 4
     decoded_chars = []
     i = index_first_data_byte
@@ -37,28 +43,28 @@ def websocket_message_deframing(frame_message):
     return ''.join(decoded_chars)
 
 
-def websocket_message_framing(frame_message):
-    bytes_formatted = [129]
-
-    bytes_raw = frame_message.encode()
-    bytes_length = len(bytes_raw)
-    if bytes_length <= 125:
-        bytes_formatted.append(bytes_length)
-    elif 126 <= bytes_length <= 65535:
-        bytes_formatted.append(126)
-        bytes_formatted.append((bytes_length >> 8) & 255)
-        bytes_formatted.append(bytes_length & 255)
+def websocket_message_framing(message, mask=False):
+    mask = int(mask)
+    encoded_message = [127]
+    if isinstance(message, str):
+        message = bytes(message.encode())
+    elif isinstance(message, bytes):
+        pass
     else:
-        bytes_formatted.append(127)
-        bytes_formatted.append((bytes_length >> 56) & 255)
-        bytes_formatted.append((bytes_length >> 48) & 255)
-        bytes_formatted.append((bytes_length >> 40) & 255)
-        bytes_formatted.append((bytes_length >> 32) & 255)
-        bytes_formatted.append((bytes_length >> 24) & 255)
-        bytes_formatted.append((bytes_length >> 16) & 255)
-        bytes_formatted.append((bytes_length >> 8) & 255)
-        bytes_formatted.append(bytes_length & 255)
+        raise TypeError('frame_message variable only expected string or bytes type')
+    payload_length = len(message)
 
-    bytes_formatted = bytes(bytes_formatted)
-    bytes_formatted = bytes_formatted + bytes_raw
-    return bytes_formatted
+    # todo: default message type is `text`
+    encoded_message[0] += opcode.text
+    encoded_message.append((mask << 7) + payload_length)
+    if mask:
+        mask_key = ''.join(choice(ascii_uppercase) for i in range(4))
+        [encoded_message.append(ord(key)) for key in mask_key]
+        for index, byte in enumerate(message.decode()):
+            encoded_message.append(ord(byte) ^ ord(mask_key[index % 4]))
+    else:
+        print(1111)
+        for byte in message.decode():
+            encoded_message.append(ord(byte))
+    print(encoded_message)
+    return bytes(encoded_message)

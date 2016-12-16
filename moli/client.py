@@ -59,10 +59,12 @@ class Client:
         print(header_dict)
 
     def emit(self, event, data):
-        message = 'hjjmnhk,k'
+        message = 'ujhggffffdv'
         framing_message = websocket_message_framing(message)
+        print(type(framing_message))
         defram = websocket_message_deframing(framing_message)
-        print(message, framing_message, defram, '11')
+        print(message, framing_message, len(defram), '11')
+        for i in defram: print(i)
         self.connection['writer'].write(framing_message)
 
     def on(self, event, data):
