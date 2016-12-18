@@ -31,5 +31,11 @@ from moli.client import Client
 # loop.run_until_complete(tcp_echo_client(message, loop))
 # loop.close()
 c = Client('http://127.0.0.1:8013/')
+
+
+@c.on('data')
+def data_event(connection):
+    print(connection)
+
 c.emit('user', 'aaaa')
 c.run_forever()

@@ -94,5 +94,6 @@ class EventMachine:
         # if event is None, regards the emit as Non event machine style and send raw data directly
         message = data if event is None else {'event': event, 'data': data}
         for connection_name in client_list:
+            log.info('Server sending {} to Client'.format(message))
             connection_pool.get(connection_name).send(message)
             # del connection_pool.get(connection_name).data

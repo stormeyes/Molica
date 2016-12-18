@@ -3,6 +3,7 @@ import base64
 import hashlib
 from .event_machine import EventMachine
 from .connection_pool import ConnectionPool
+from .log import log
 
 
 GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
@@ -61,4 +62,5 @@ class WebSocketResponse:
         return True
 
     def send(self, message):
+        log.info('Server sending {} to Client'.format(message))
         self.connection.send(message, encode=True)
