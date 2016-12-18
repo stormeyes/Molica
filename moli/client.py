@@ -72,6 +72,31 @@ class LocalConnection:
         self.writer = writer
 
 
+class EchoClientProtocol(asyncio.Protocol):
+    def __init__(self, message, loop):
+        self.message = message
+        self.loop = loop
+        self.transport = None
+
+    def connection_made(self, transport):
+        self.transport = transport
+        transport.write(self.message.encode())
+        print('Data sent: {!r}'.format(self.message))
+
+    def data_received(self, data):
+        print(data)
+        a = websocket_message_framing('aaa')
+        # self.transport.write(a)
+
+    def connection_lost(self, exc):
+        print('The server closed the connection')
+        print('Stop the event loop')
+        self.loop.stop()
+
+    def happy(self):
+        print('you happy jiu ok')
+
+
 def build_request_header(host, path, key, port):
     return 'GET {} HTTP/1.1\r\n' \
             'Host: {}:{}\r\n' \
