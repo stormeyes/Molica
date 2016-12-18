@@ -23,9 +23,9 @@ class WebSocketClient(asyncio.Protocol):
 
     def connection_made(self, transport):
         transport.write(self.message.encode())
-        print('Data sent: {!r}'.format(self.message))
 
     def data_received(self, data):
+        print(data)
         print('Data received: {!r}'.format(data.decode()))
 
     def connection_lost(self, exc):
@@ -41,7 +41,6 @@ def build_request_header(host, path, key, port):
             'Upgrade: websocket\r\n' \
             'Sec-WebSocket-Version: 13\r\n' \
             'Sec-WebSocket-Key: {}\r\n' \
-            'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36\r\n' \
             'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n' \
             'Accept-Encoding: gzip, deflate, sdch, br\r\n' \
             'Accept-Language: zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,zh-TW;q=0.2\r\n\r\n'.format(path, host, port or 80, key)
@@ -50,11 +49,11 @@ def build_request_header(host, path, key, port):
 class Client:
     def __init__(self, url):
         self.URL = url
-        self.connection = dict(reader=None, writer=None)
+        self.connection = None
+        self.clientProtocol = None
         self.loop = asyncio.get_event_loop()
-        self.event_machine = dict()
 
-        self.loop.run_until_complete(self.connect())
+        self.connect()
 
     @staticmethod
     def generate_key():
@@ -71,17 +70,23 @@ class Client:
         else:
             return parse
 
-    def run_forever(self):
+    def connect(self):
         parser = self.url_validation()
         key = self.generate_key()
         # todo: check if parser.path is useful
         header = build_request_header(parser.netloc, parser.path, key, parser.port)
-        self.loop.create_connection(lambda: WebSocketClient(header, self.loop), parser.netloc, parser.port or 80)
+        print(parser.netloc, parser.port)
+        connection_coroutine = self.loop.create_connection(
+            lambda: WebSocketClient(header, self.loop), '127.0.0.1', parser.port or 80)
+        self.connection, self.clientProtocol = self.loop.run_until_complete(connection_coroutine)
+
+    def run_forever(self):
+        self.loop.run_forever()
 
     def emit(self, event, data):
         message = json.dumps({'event': event, 'data': data})
         framing_message = websocket_message_framing(message, 1)
-        self.connection['writer'].write(framing_message)
+        self.connection.write(framing_message)
         print(message)
 
     def on(self, event):
