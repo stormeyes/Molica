@@ -1,5 +1,5 @@
 # moli
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.5%2B-green.svg)](Python) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 A Websocket Server/Client of Python by using async/await which is based on Python3.5+. Deliver your message realtime!
 
