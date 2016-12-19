@@ -3,13 +3,13 @@ from moli import Moli, EventMachine
 
 @EventMachine.on('data')
 def data_event(connection):
-    EventMachine.emit('ss', '111111', connection=connection)
+    # EventMachine.emit('ss', '111111', connection=connection)
     print('data event trigger and the data is ', connection.data)
 
 
 @EventMachine.on('connect')
 def connect_event(connection):
-    print('connect event', connection.data)
+    print('connect event trigger', connection.data)
 
 
 @EventMachine.on('user')

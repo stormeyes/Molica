@@ -35,7 +35,12 @@ c = Client('http://127.0.0.1:8013/')
 
 @c.on('data')
 def data_event(connection):
-    print(connection)
+    print(connection, 'ww=======')
+
+
+@c.on('ss')
+def user_event(connection):
+    print('the ss connection'+connection)
 
 c.emit('user', 'aaaa')
 c.run_forever()

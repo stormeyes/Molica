@@ -52,6 +52,7 @@ class EventMachine:
 
     @classmethod
     def emit(cls, event, data, to=None, broadcast=False, net=True, local=False, connection=None):
+        log.info('server event {} triggered and send data {}'.format(event, data))
         if local:
             '''
             In the local env, the connection is not exist in fact, we wrapper data into connection type

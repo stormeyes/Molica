@@ -15,18 +15,36 @@ from .parser import parser_http_header, websocket_message_framing, websocket_mes
 from .exceptions import URLNotValidException
 from .event_machine import EventRouter
 
+event_router = EventRouter()
+
 
 class WebSocketClient(asyncio.Protocol):
-    def __init__(self, message, loop):
-        self.message = message
+    def __init__(self, handshake_header, loop):
+        self._has_handshake = False
+        self.handshake_header = handshake_header
         self.loop = loop
 
     def connection_made(self, transport):
-        transport.write(self.message.encode())
+        transport.write(self.handshake_header.encode())
 
     def data_received(self, data):
-        print(data)
-        print('Data received: {!r}'.format(data.decode()))
+        if self._has_handshake:
+            for i in data: print(i)
+            deframing_data = websocket_message_deframing(data)
+            data_event_func = event_router.get_event('data')
+            if data_event_func:
+                for event_func in data_event_func:
+                    event_func(deframing_data)
+            try:
+                response_data = json.loads(deframing_data)
+                if response_data['event'] and response_data['data']:
+                    event_list = event_router.get_event(response_data['event'])
+                    for event_func in event_list:
+                        event_func(response_data)
+            except ValueError:
+                pass
+        else:
+            self._has_handshake = True
 
     def connection_lost(self, exc):
         print('The server closed the connection')
@@ -40,10 +58,7 @@ def build_request_header(host, path, key, port):
             'Connection: Upgrade\r\n' \
             'Upgrade: websocket\r\n' \
             'Sec-WebSocket-Version: 13\r\n' \
-            'Sec-WebSocket-Key: {}\r\n' \
-            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n' \
-            'Accept-Encoding: gzip, deflate, sdch, br\r\n' \
-            'Accept-Language: zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,zh-TW;q=0.2\r\n\r\n'.format(path, host, port or 80, key)
+            'Sec-WebSocket-Key: {}\r\n\r\n'.format(path, host, port or 80, key)
 
 
 class Client:
@@ -75,7 +90,6 @@ class Client:
         key = self.generate_key()
         # todo: check if parser.path is useful
         header = build_request_header(parser.netloc, parser.path, key, parser.port)
-        print(parser.netloc, parser.port)
         connection_coroutine = self.loop.create_connection(
             lambda: WebSocketClient(header, self.loop), '127.0.0.1', parser.port or 80)
         self.connection, self.clientProtocol = self.loop.run_until_complete(connection_coroutine)
@@ -85,9 +99,9 @@ class Client:
 
     def emit(self, event, data):
         message = json.dumps({'event': event, 'data': data})
-        framing_message = websocket_message_framing(message, 1)
+        framing_message = websocket_message_framing(message, True)
         self.connection.write(framing_message)
-        print(message)
+        print(message, '=========')
 
     def on(self, event):
         if not isinstance(event, str):
