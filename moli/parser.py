@@ -22,7 +22,6 @@ def compute_websocket_key(websocket_key):
     else:
         raise TypeError('the parser only expected data as str/bytes type')
 
-    print(type(websocket_key), websocket_key)
     hash_key = hashlib.sha1((websocket_key + GUID).encode()).digest()
     base64_key = base64.b64encode(hash_key)
     return base64_key

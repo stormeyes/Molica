@@ -28,7 +28,6 @@ class WebSocketClient(asyncio.Protocol):
         self.loop = loop
 
     def connection_made(self, transport):
-        print(self.handshake_header)
         transport.write(self.handshake_header.encode())
 
     def data_received(self, data):
@@ -50,7 +49,8 @@ class WebSocketClient(asyncio.Protocol):
             self._has_handshake = True
             websocket_key_pair = self.generate_key_pair()
             http_header = parser_http_header(data, websocket_accept=False)
-            print(http_header, websocket_key_pair)
+            if http_header['Sec-WebSocket-Accept'] != websocket_key_pair:
+                raise Exception
 
     def connection_lost(self, exc):
         log.info('The server closed the connection so I STOP the event loop')
