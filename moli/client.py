@@ -4,9 +4,9 @@ import random
 import asyncio
 from urllib.parse import urlparse
 from .log import log
-from .parser import parser_http_header, websocket_message_framing, websocket_message_deframing, compute_websocket_key
-from .exceptions import URLNotValidException
 from .event_machine import EventRouter
+from .exceptions import URLNotValidException
+from .parser import parser_http_header, websocket_message_framing, websocket_message_deframing, compute_websocket_key
 
 event_router = EventRouter()
 
@@ -28,6 +28,7 @@ class WebSocketClient(asyncio.Protocol):
         self.loop = loop
 
     def connection_made(self, transport):
+        print(self.handshake_header)
         transport.write(self.handshake_header.encode())
 
     def data_received(self, data):
@@ -72,7 +73,7 @@ class Client:
     @staticmethod
     def generate_key():
         seed_random = int(random.random() * 10 ** 16)
-        return base64.b64encode(seed_random.__str__().encode())
+        return base64.b64encode(seed_random.__str__().encode()).decode()
 
     @staticmethod
     def url_validation(URL):
