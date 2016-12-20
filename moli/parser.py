@@ -31,7 +31,7 @@ def websocket_message_deframing(frame_message):
         index_first_mask = 4
     elif datalength == 127:
         index_first_mask = 10
-    masks = [ m for m in byte_array[index_first_mask: index_first_mask + 4]]
+    masks = [ m for m in byte_array[index_first_mask: index_first_mask + 4] ]
     index_first_data_byte = index_first_mask + 4
     decoded_chars = []
     i = index_first_data_byte
