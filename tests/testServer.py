@@ -3,7 +3,6 @@ from moli import Moli, EventMachine
 
 @EventMachine.on('data')
 def data_event(connection):
-    # EventMachine.emit('ss', '111111', connection=connection)
     print('data event trigger and the data is ', connection.data)
 
 
@@ -12,10 +11,10 @@ def connect_event(connection):
     print('connect event trigger', connection.data)
 
 
-@EventMachine.on('user')
+@EventMachine.on('mybaby')
 def user_event(connection):
-    print('user event', connection.data)
-    EventMachine.emit('ss', '111111', connection=connection)
+    print('mybaby event', connection.data)
+    EventMachine.emit('ss', 'sirena', connection=connection)
 
 
 Moli.blossom('127.0.0.1', 8013)

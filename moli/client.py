@@ -1,25 +1,28 @@
-"""
-The client for moli
-example:
-    m = moli.client()
-    m.on('connect', )
-    m.on('message', )
-    m.emit('foo', {bar: 'barbiQ'})
-"""
 import json
 import base64
 import random
 import asyncio
 from urllib.parse import urlparse
-from .parser import parser_http_header, websocket_message_framing, websocket_message_deframing
+from .log import log
+from .parser import parser_http_header, websocket_message_framing, websocket_message_deframing, compute_websocket_key
 from .exceptions import URLNotValidException
 from .event_machine import EventRouter
 
 event_router = EventRouter()
 
 
+def build_request_header(host, path, key, port):
+    return 'GET {} HTTP/1.1\r\n' \
+            'Host: {}:{}\r\n' \
+            'Connection: Upgrade\r\n' \
+            'Upgrade: websocket\r\n' \
+            'Sec-WebSocket-Version: 13\r\n' \
+            'Sec-WebSocket-Key: {}\r\n\r\n'.format(path, host, port or 80, key)
+
+
 class WebSocketClient(asyncio.Protocol):
     def __init__(self, handshake_header, loop):
+        self.websocket_key = None
         self._has_handshake = False
         self.handshake_header = handshake_header
         self.loop = loop
@@ -44,20 +47,16 @@ class WebSocketClient(asyncio.Protocol):
                 pass
         else:
             self._has_handshake = True
+            websocket_key_pair = self.generate_key_pair()
+            http_header = parser_http_header(data, websocket_accept=False)
+            print(http_header, websocket_key_pair)
 
     def connection_lost(self, exc):
-        print('The server closed the connection')
-        print('Stop the event loop')
+        log.info('The server closed the connection so I STOP the event loop')
         self.loop.stop()
 
-
-def build_request_header(host, path, key, port):
-    return 'GET {} HTTP/1.1\r\n' \
-            'Host: {}:{}\r\n' \
-            'Connection: Upgrade\r\n' \
-            'Upgrade: websocket\r\n' \
-            'Sec-WebSocket-Version: 13\r\n' \
-            'Sec-WebSocket-Key: {}\r\n\r\n'.format(path, host, port or 80, key)
+    def generate_key_pair(self):
+        return compute_websocket_key(self.websocket_key)
 
 
 class Client:
@@ -65,6 +64,7 @@ class Client:
         self.URL = url
         self.connection = None
         self.clientProtocol = None
+        self.websocket_key = None
         self.loop = asyncio.get_event_loop()
 
         self.connect()
@@ -74,8 +74,9 @@ class Client:
         seed_random = int(random.random() * 10 ** 16)
         return base64.b64encode(seed_random.__str__().encode())
 
-    def url_validation(self):
-        parse = urlparse(self.URL)
+    @staticmethod
+    def url_validation(URL):
+        parse = urlparse(URL)
 
         if parse.scheme not in ['http', 'https', 'ws', 'wss']:
             raise URLNotValidException('scheme')
@@ -85,18 +86,24 @@ class Client:
             return parse
 
     def connect(self):
-        parser = self.url_validation()
-        key = self.generate_key()
-        # todo: check if parser.path is useful
-        header = build_request_header(parser.netloc, parser.path, key, parser.port)
+        parser = self.url_validation(self.URL)
+        self.websocket_key = self.generate_key()
+        header = build_request_header(parser.hostname, parser.path, self.websocket_key, parser.port)
         connection_coroutine = self.loop.create_connection(
-            lambda: WebSocketClient(header, self.loop), '127.0.0.1', parser.port or 80)
+            lambda: WebSocketClient(header, self.loop), parser.hostname, parser.port or 80)
+
         self.connection, self.clientProtocol = self.loop.run_until_complete(connection_coroutine)
+
+        self.clientProtocol.websocket_key = self.websocket_key
 
     def run_forever(self):
         self.loop.run_forever()
 
     def emit(self, event, data):
+        if not isinstance(event, str):
+            log.error('typeError')
+            raise TypeError('event variable only expected string type')
+
         message = json.dumps({'event': event, 'data': data})
         framing_message = websocket_message_framing(message, True)
         self.connection.write(framing_message)

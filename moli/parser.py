@@ -4,21 +4,43 @@ parse used to parse the protocol such as websocket handshake or websocket messag
 from random import choice
 from string import ascii_uppercase
 import email
+import hashlib
+import base64
 from io import StringIO
 from collections import namedtuple
 from .exceptions import NotWebSocketHandShakeException
 
-
+GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 opcode = namedtuple('Opcode', ['text', 'binary', 'ping', 'pong'])(1, 2, 9, 10)
 
 
-def parser_http_header(data, websocket=True):
-    socket_data = data.decode()
+def compute_websocket_key(websocket_key):
+    if isinstance(websocket_key, str):
+        pass
+    elif isinstance(websocket_key, bytes):
+        websocket_key = websocket_key.decode()
+    else:
+        raise TypeError('the parser only expected data as str/bytes type')
+
+    hash_key = hashlib.sha1((websocket_key + GUID).encode()).digest()
+    base64_key = base64.b64encode(hash_key)
+    return base64_key
+
+
+def parser_http_header(data, websocket_key=False, websocket_accept=False):
+    if isinstance(data, str):
+        socket_data = data
+    elif isinstance(data, bytes):
+        socket_data = data.decode()
+    else:
+        raise TypeError('the parser only expected data as str/bytes type')
 
     _, headers = socket_data.split('\r\n', 1)
     message = email.message_from_file(StringIO(headers))
     headers = dict(message.items())
-    if 'Sec-WebSocket-Key' not in headers and websocket:
+    if 'Sec-WebSocket-Key' not in headers and websocket_key:
+        raise NotWebSocketHandShakeException()
+    if 'Sec-WebSocket-Accept' not in headers and websocket_accept:
         raise NotWebSocketHandShakeException()
     return headers
 

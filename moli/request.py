@@ -28,5 +28,5 @@ class WebSocketRequest(Request):
 class HttpHandshakeRequest(Request):
     @property
     def header(self):
-        return parser_http_header(self.data)
+        return parser_http_header(self.data, websocket_key=True)
 

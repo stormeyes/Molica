@@ -1,12 +1,9 @@
 import json
-import base64
-import hashlib
+from .parser import compute_websocket_key
 from .event_machine import EventMachine
 from .connection_pool import ConnectionPool
 from .log import log
 
-
-GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
 connection_pool = ConnectionPool()
 
@@ -27,18 +24,13 @@ class HttpResponse:
 
     def handshake(self, request):
         self.websocket_key = request.header['Sec-WebSocket-Key']
-        encrypt_key = self._compute_websocket_key()
+        encrypt_key = compute_websocket_key(self.websocket_key)
         handshake_response_header = '\r\n'.join(self.websocket_answer)\
             .format(websocket_key=encrypt_key.decode())
         self.send(handshake_response_header.encode())
 
     def raise_error(self, status_code):
         pass
-
-    def _compute_websocket_key(self):
-        hash_key = hashlib.sha1((self.websocket_key + GUID).encode()).digest()
-        base64_key = base64.b64encode(hash_key)
-        return base64_key
 
 
 class WebSocketResponse:
