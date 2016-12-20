@@ -26,20 +26,30 @@ def parser_http_header(data, websocket=True):
 def websocket_message_deframing(frame_message):
     byte_array = frame_message
     datalength = byte_array[1] & 127
+    mask = byte_array[1] >> 7 & 1
     index_first_mask = 2
+    decoded_chars = []
+
     if datalength == 126:
         index_first_mask = 4
     elif datalength == 127:
         index_first_mask = 10
-    masks = [ m for m in byte_array[index_first_mask: index_first_mask + 4] ]
-    index_first_data_byte = index_first_mask + 4
-    decoded_chars = []
-    i = index_first_data_byte
-    j = 0
-    while i < len(byte_array):
-        decoded_chars.append(chr(byte_array[i] ^ masks[j % 4]))
-        i += 1
-        j += 1
+    if mask:
+        masks = [m for m in byte_array[index_first_mask: index_first_mask + 4]]
+        index_first_data_byte = index_first_mask + 4
+        i = index_first_data_byte
+        j = 0
+        while i < len(byte_array):
+            decoded_chars.append(chr(byte_array[i] ^ masks[j % 4]))
+            i += 1
+            j += 1
+    else:
+        decoded_chars = []
+        index_first_data_byte = 2
+        while index_first_data_byte < len(byte_array):
+            decoded_chars.append(chr(byte_array[index_first_data_byte]))
+            index_first_data_byte += 1
+
     return ''.join(decoded_chars)
 
 

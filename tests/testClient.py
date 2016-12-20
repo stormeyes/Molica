@@ -40,7 +40,7 @@ def data_event(connection):
 
 @c.on('ss')
 def user_event(connection):
-    print('the ss connection'+connection)
+    print('ss event is trigger')
 
 c.emit('user', 'aaaa')
 c.run_forever()

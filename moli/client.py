@@ -29,7 +29,6 @@ class WebSocketClient(asyncio.Protocol):
 
     def data_received(self, data):
         if self._has_handshake:
-            for i in data: print(i)
             deframing_data = websocket_message_deframing(data)
             data_event_func = event_router.get_event('data')
             if data_event_func:
@@ -101,7 +100,6 @@ class Client:
         message = json.dumps({'event': event, 'data': data})
         framing_message = websocket_message_framing(message, True)
         self.connection.write(framing_message)
-        print(message, '=========')
 
     def on(self, event):
         if not isinstance(event, str):
