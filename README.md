@@ -3,10 +3,10 @@
 
 A Websocket Server/Client of Python by using async/await which is based on Python3.5+. Deliver your message realtime!
 
-###Note
+### Note
 ~~Moli is still under development and the api might change in future.~~ Just take care and start play!
 
-###Example
+### Example
 + simple `hello world`
 ```python
     from moli import Moli, EventMachine
